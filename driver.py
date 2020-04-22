@@ -147,6 +147,7 @@ def main():
         a_star_search(hard_state)
     else:
         print("Enter valid command arguments !")
+    print("i am ayaa")
 
 
 if __name__ == '__main__':
