@@ -1,8 +1,13 @@
 import queue as Q
 import time
-# import resource
 import sys
 import math
+if sys.platform == "win32":
+    import psutil
+    # print("psutil", psutil.Process().memory_info().rss)
+else:
+    import resource
+    # print("resource", resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
 
 # The Class that Represents the Puzzle
