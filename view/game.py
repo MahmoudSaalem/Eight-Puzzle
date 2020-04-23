@@ -58,9 +58,12 @@ class Board(tkinter.Canvas):
         if tile // 3 == 0 or self.state[tile - 3] != 0:
             return False
         total = 64 + 10
-        dy = - total / 10
-        for i in range(10):
+        dy = - total / 8
+        for i in range(9):
             self.move(self._tiles[tile], 0, dy)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], 0, -dy/4)
             self.update()
         self.swap_images(tile, tile - 3)
         return True
@@ -69,9 +72,12 @@ class Board(tkinter.Canvas):
         if tile % 3 == 2 or self.state[tile + 1] != 0:
             return False
         total = 64 + 10
-        dx = total / 10
-        for i in range(10):
+        dx = total / 8
+        for i in range(9):
             self.move(self._tiles[tile], dx, 0)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], -dx/4, 0)
             self.update()
         self.swap_images(tile, tile + 1)
         return True
@@ -80,9 +86,12 @@ class Board(tkinter.Canvas):
         if tile // 3 == 2 or self.state[tile + 3] != 0:
             return False
         total = 64 + 10
-        dy = total / 10
-        for i in range(10):
+        dy = total / 8
+        for i in range(9):
             self.move(self._tiles[tile], 0, dy)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], 0, -dy/4)
             self.update()
         self.swap_images(tile, tile + 3)
         return True
@@ -91,9 +100,12 @@ class Board(tkinter.Canvas):
         if tile % 3 == 0 or self.state[tile - 1] != 0:
             return False
         total = 64 + 10
-        dx = - total / 10
-        for i in range(10):
+        dx = - total / 8
+        for i in range(9):
             self.move(self._tiles[tile], dx, 0)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], -dx/4, 0)
             self.update()
         self.swap_images(tile, tile - 1)
         return True
@@ -102,10 +114,14 @@ class Board(tkinter.Canvas):
         if tile // 3 != 2 or self.state[tile - 6] != 0:
             return False
         total = 64 + 10
-        dy = - total / 10
-        for i in range(10):
+        dy = - total / 8
+        for i in range(9):
             self.move(self._tiles[tile], 0, dy)
             self.move(self._tiles[tile - 3], 0, dy)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], 0, -dy/4)
+            self.move(self._tiles[tile - 3], 0, -dy/4)
             self.update()
         self.swap_images(tile - 3, tile - 6)
         self.swap_images(tile, tile - 3)
@@ -115,10 +131,14 @@ class Board(tkinter.Canvas):
         if tile % 3 != 0 or self.state[tile + 2] != 0:
             return False
         total = 64 + 10
-        dx = total / 10
-        for i in range(10):
+        dx = total / 8
+        for i in range(9):
             self.move(self._tiles[tile], dx, 0)
             self.move(self._tiles[tile + 1], dx, 0)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], -dx/4, 0)
+            self.move(self._tiles[tile + 1], -dx/4, 0)
             self.update()
         self.swap_images(tile + 1, tile + 2)
         self.swap_images(tile, tile + 1)
@@ -128,10 +148,14 @@ class Board(tkinter.Canvas):
         if tile // 3 != 0 or self.state[tile + 6] != 0:
             return False
         total = 64 + 10
-        dy = total / 10
-        for i in range(10):
+        dy = total / 8
+        for i in range(9):
             self.move(self._tiles[tile], 0, dy)
             self.move(self._tiles[tile + 3], 0, dy)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], 0, -dy/4)
+            self.move(self._tiles[tile + 3], 0, -dy/4)
             self.update()
         self.swap_images(tile + 3, tile + 6)
         self.swap_images(tile, tile + 3)
@@ -141,10 +165,14 @@ class Board(tkinter.Canvas):
         if tile % 3 != 2 or self.state[tile - 2] != 0:
             return False
         total = 64 + 10
-        dx = - total / 10
-        for i in range(10):
+        dx = - total / 8
+        for i in range(9):
             self.move(self._tiles[tile], dx, 0)
             self.move(self._tiles[tile - 1], dx, 0)
+            self.update()
+        for i in range(4):
+            self.move(self._tiles[tile], -dx/4, 0)
+            self.move(self._tiles[tile - 1], -dx/4, 0)
             self.update()
         self.swap_images(tile - 1, tile - 2)
         self.swap_images(tile, tile - 1)
