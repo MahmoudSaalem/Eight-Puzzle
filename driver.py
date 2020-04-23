@@ -1,6 +1,6 @@
 import queue as Q
 import time
-#import resource
+# import resource
 import sys
 import math
 
@@ -10,7 +10,7 @@ import math
 class PuzzleState(object):
     def __init__(self, config, n, parent=None, action="Initial", cost=0):
 
-        if n * n != len(config) or n < 2:
+        if n * n != 9 or len(config) != 9:
             raise Exception("the length of config is not correct!")
         self.n = n
         self.cost = cost
@@ -132,10 +132,29 @@ def test_goal(puzzle_state: PuzzleState):
     return puzzle_state.config == goal_state
 
 
+def get_arg(param_index, default=None):
+    """
+    Gets a command line argument by index (note: index starts from 1)
+    If the argument is not supplies, it tries to use a default value.
+    If a default value isn't supplied, an error message is printed
+    and terminates the program.
+    """
+    try:
+        return sys.argv[param_index]
+    except IndexError as e:
+        if default:
+            return default
+        else:
+            print(e)
+            print(
+                f"[FATAL] The command-line argument #[{param_index}] is missing")
+            exit(-1)    # Program execution failed.
+
+
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
-    method = sys.argv[1].lower()
-    begin_state = sys.argv[2].split(",")
+    method = get_arg(1, "bfs").lower()
+    begin_state = get_arg(2, "1,0,2,3,4,5,6,7,8").split(",")
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)
