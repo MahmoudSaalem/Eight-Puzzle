@@ -103,8 +103,19 @@ def write_output():
 
 def bfs_search(initial_state):
     """BFS search"""
+    frontier=[]
+    explored=set()
+    frontier.append(initial_state)
+    while len(frontier) !=0:
+        state: PuzzleState=frontier.pop(0)
+        explored.add(state.config)
+        if test_goal(state):
+            return state.display()
+        for neighbor in state.expand():
+            if neighbor.config not in explored:
+                frontier.append(neighbor)
 
-    pass
+    return False
 
 
 def dfs_search(initial_state):
