@@ -97,6 +97,24 @@ class PuzzleState(object):
                 self.children.append(right_child)
         return self.children
 
+    def reverse_expand(self):
+        """expand the node"""
+        # add child nodes in order of reverse-UDLR
+        if len(self.children) == 0:
+            right_child = self.move_right()
+            if right_child is not None:
+                self.children.append(right_child)
+            left_child = self.move_left()
+            if left_child is not None:
+                self.children.append(left_child)
+            down_child = self.move_down()
+            if down_child is not None:
+                self.children.append(down_child)
+            up_child = self.move_up()
+            if up_child is not None:
+                self.children.append(up_child)
+        return self.children
+
 
 def write_output():
     pass
@@ -116,7 +134,7 @@ def bfs_search(initial_state):
             return state.display()
 
         for neighbor in state.expand():
-            if neighbor.config not in explored:
+            if neighbor.config not in explored and neighbor not in frontier:
                 frontier.append(neighbor)
     return False
 
@@ -134,8 +152,8 @@ def dfs_search(initial_state):
             print(state.cost)
             return state.display()
 
-        for neighbor in state.expand():
-            if neighbor.config not in explored:
+        for neighbor in state.reverse_expand():
+            if neighbor.config not in explored and neighbor not in frontier:
                 frontier.append(neighbor)
     return False
 
@@ -175,7 +193,7 @@ def update_queue_key(frontier, val, cost):
         if elem[1].config == val.config:
             if cost < elem[0]:
                 frontier.pop(i)
-                frontier.append((cost, elem[1]))
+                frontier.append((cost, val))
                 frontier.sort(reverse=True, key=lambda tup: tup[0])
             break
 
@@ -235,8 +253,8 @@ def get_arg(param_index, default=None):
 
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
-    method = get_arg(1, "dfs").lower()
-    begin_state = get_arg(2, "1,2,5,3,4,0,6,7,8").split(",")
+    method = get_arg(1, "ast_man").lower()
+    begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
     # begin_state= "1,0,2,3,4,5,6,7,8".split(",")
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
