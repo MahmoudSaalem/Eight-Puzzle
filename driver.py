@@ -2,6 +2,7 @@ import queue as Q
 import time
 import sys
 import math
+
 if sys.platform == "win32":
     import psutil
     # print("psutil", psutil.Process().memory_info().rss)
@@ -11,7 +12,6 @@ else:
 
 
 # The Class that Represents the Puzzle
-
 class PuzzleState(object):
     def __init__(self, config, n, parent=None, action="Initial", cost=0):
 
@@ -109,8 +109,20 @@ def bfs_search(initial_state):
 
 def dfs_search(initial_state):
     """DFS search"""
+    frontier = []
+    frontier.append(initial_state)
+    explored = set()
+    while frontier is not None:
+        state: PuzzleState = frontier.pop()
+        explored.add(state.config)
 
-    pass
+        if test_goal(state):
+            return state.display()
+
+        for neighbor in state.expand():
+            if neighbor.config not in explored:
+                frontier.append(neighbor)
+    return False
 
 
 def a_star_search(initial_state):
@@ -160,9 +172,13 @@ def get_arg(param_index, default=None):
 def main():
     method = get_arg(1, "bfs").lower()
     begin_state = get_arg(2, "1,0,2,3,4,5,6,7,8").split(",")
+   # begin_state= "1,0,2,3,4,5,6,7,8".split(",")
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)
+    hard_state.display()
+    #print("After DFS:")
+    #dfs_search(hard_state)
     if method == "bfs":
         bfs_search(hard_state)
     elif method == "dfs":
