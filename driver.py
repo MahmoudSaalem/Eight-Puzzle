@@ -2,6 +2,7 @@ import queue as Q
 import time
 import sys
 import math
+import heapq
 
 if sys.platform == "win32":
     import psutil
@@ -103,31 +104,34 @@ def write_output():
 
 def bfs_search(initial_state):
     """BFS search"""
-    frontier=[]
-    explored=set()
+    frontier = []
+    explored = set()
     frontier.append(initial_state)
-    while len(frontier) !=0:
-        state: PuzzleState=frontier.pop(0)
+    while frontier:
+        state: PuzzleState = frontier.pop(0)
         explored.add(state.config)
+
         if test_goal(state):
+            print(state.cost)
             return state.display()
+
         for neighbor in state.expand():
             if neighbor.config not in explored:
                 frontier.append(neighbor)
-
     return False
 
 
 def dfs_search(initial_state):
     """DFS search"""
     frontier = []
-    frontier.append(initial_state)
     explored = set()
-    while frontier is not None:
+    frontier.append(initial_state)
+    while frontier:
         state: PuzzleState = frontier.pop()
         explored.add(state.config)
 
         if test_goal(state):
+            print(state.cost)
             return state.display()
 
         for neighbor in state.expand():
@@ -136,22 +140,72 @@ def dfs_search(initial_state):
     return False
 
 
-def a_star_search(initial_state):
+def a_star_search(initial_state, cost_function):
     """A * search"""
+    frontier = []
+    explored = set()
+    frontier.append((calculate_total_cost(initial_state, cost_function), initial_state))
+    while frontier:
+        state: PuzzleState = frontier.pop()[1]
+        explored.add(state.config)
 
-    pass
+        if test_goal(state):
+            print(state.cost)
+            return state.display()
+
+        for neighbour in state.expand():
+            cost = calculate_total_cost(neighbour, calculate_manhattan_dist)
+            if neighbour.config not in explored and not in_priority_queue(frontier, neighbour):
+                frontier.append((cost, neighbour))
+                frontier.sort(reverse=True, key=lambda tup: tup[0])
+            elif in_priority_queue(frontier, neighbour):
+                update_queue_key(frontier, neighbour, cost)
+    return False
 
 
-def calculate_total_cost(state):
+def in_priority_queue(frontier, val):
+    for elem in frontier:
+        if elem[1].config == val.config:
+            return True
+    return False
+
+
+def update_queue_key(frontier, val, cost):
+    for i, elem in enumerate(frontier):
+        if elem[1].config == val.config:
+            if cost < elem[0]:
+                frontier.pop(i)
+                frontier.append((cost, elem[1]))
+                frontier.sort(reverse=True, key=lambda tup: tup[0])
+            break
+
+
+def calculate_total_cost(state, cost_function):
     """calculate the total estimated cost of a state"""
-
-    pass
+    cost = 0
+    for idx, value in enumerate(state.config):
+        if value == 0:
+            continue
+        cost += cost_function(idx, value, state.n)
+    return cost + state.cost
 
 
 def calculate_manhattan_dist(idx, value, n):
     """calculate the manhattan distance of a tile"""
+    goal_x = value // n
+    goal_y = value % n
+    curr_x = idx // n
+    curr_y = idx % n
+    return abs(goal_x - curr_x) + abs(goal_y - curr_y)
 
-    pass
+
+def calculate_euclidean_dist(idx, value, n):
+    """calculate the euclidean distance of a tile"""
+    goal_x = value // n
+    goal_y = value % n
+    curr_x = idx // n
+    curr_y = idx % n
+    return math.sqrt(pow(goal_x - curr_x, 2) + pow(goal_y - curr_y, 2))
 
 
 def test_goal(puzzle_state: PuzzleState):
@@ -176,26 +230,28 @@ def get_arg(param_index, default=None):
             print(e)
             print(
                 f"[FATAL] The command-line argument #[{param_index}] is missing")
-            exit(-1)    # Program execution failed.
+            exit(-1)  # Program execution failed.
 
 
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
-    method = get_arg(1, "bfs").lower()
-    begin_state = get_arg(2, "1,0,2,3,4,5,6,7,8").split(",")
-   # begin_state= "1,0,2,3,4,5,6,7,8".split(",")
+    method = get_arg(1, "dfs").lower()
+    begin_state = get_arg(2, "1,2,5,3,4,0,6,7,8").split(",")
+    # begin_state= "1,0,2,3,4,5,6,7,8".split(",")
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)
     hard_state.display()
-    #print("After DFS:")
-    #dfs_search(hard_state)
+    # print("After DFS:")
+    # dfs_search(hard_state)
     if method == "bfs":
         bfs_search(hard_state)
     elif method == "dfs":
         dfs_search(hard_state)
-    elif method == "ast":
-        a_star_search(hard_state)
+    elif method == "ast_man":
+        a_star_search(hard_state, calculate_manhattan_dist)
+    elif method == "ast_euc":
+        a_star_search(hard_state, calculate_euclidean_dist)
     else:
         print("Enter valid command arguments !")
 
