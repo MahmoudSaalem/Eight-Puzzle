@@ -37,14 +37,14 @@ class Board(tkinter.Canvas):
             return
         self.drawing = True
         moved = False
-        moved = moved or self.try_move_up(tile)
-        moved = moved or self.try_move_right(tile)
         moved = moved or self.try_move_down(tile)
         moved = moved or self.try_move_left(tile)
-        moved = moved or self.try_double_move_up(tile)
-        moved = moved or self.try_double_move_right(tile)
+        moved = moved or self.try_move_up(tile)
+        moved = moved or self.try_move_right(tile)
         moved = moved or self.try_double_move_down(tile)
         moved = moved or self.try_double_move_left(tile)
+        moved = moved or self.try_double_move_up(tile)
+        moved = moved or self.try_double_move_right(tile)
         if not moved:
             self.shake(tile)
         self.drawing = False
@@ -54,7 +54,7 @@ class Board(tkinter.Canvas):
         else:
             self.config(bg="red")
 
-    def try_move_up(self, tile):
+    def try_move_down(self, tile):
         if tile // 3 == 0 or self.state[tile - 3] != 0:
             return False
         total = 64 + 10
@@ -63,7 +63,7 @@ class Board(tkinter.Canvas):
         self.swap_images(tile, tile - 3)
         return True
 
-    def try_move_right(self, tile):
+    def try_move_left(self, tile):
         if tile % 3 == 2 or self.state[tile + 1] != 0:
             return False
         total = 64 + 10
@@ -72,7 +72,7 @@ class Board(tkinter.Canvas):
         self.swap_images(tile, tile + 1)
         return True
 
-    def try_move_down(self, tile):
+    def try_move_up(self, tile):
         if tile // 3 == 2 or self.state[tile + 3] != 0:
             return False
         total = 64 + 10
@@ -81,7 +81,7 @@ class Board(tkinter.Canvas):
         self.swap_images(tile, tile + 3)
         return True
 
-    def try_move_left(self, tile):
+    def try_move_right(self, tile):
         if tile % 3 == 0 or self.state[tile - 1] != 0:
             return False
         total = 64 + 10
@@ -90,7 +90,7 @@ class Board(tkinter.Canvas):
         self.swap_images(tile, tile - 1)
         return True
 
-    def try_double_move_up(self, tile):
+    def try_double_move_down(self, tile):
         if tile // 3 != 2 or self.state[tile - 6] != 0:
             return False
         total = 64 + 10
@@ -100,7 +100,7 @@ class Board(tkinter.Canvas):
         self.swap_images(tile, tile - 3)
         return True
 
-    def try_double_move_right(self, tile):
+    def try_double_move_left(self, tile):
         if tile % 3 != 0 or self.state[tile + 2] != 0:
             return False
         total = 64 + 10
@@ -110,7 +110,7 @@ class Board(tkinter.Canvas):
         self.swap_images(tile, tile + 1)
         return True
 
-    def try_double_move_down(self, tile):
+    def try_double_move_up(self, tile):
         if tile // 3 != 0 or self.state[tile + 6] != 0:
             return False
         total = 64 + 10
@@ -120,7 +120,7 @@ class Board(tkinter.Canvas):
         self.swap_images(tile, tile + 3)
         return True
 
-    def try_double_move_left(self, tile):
+    def try_double_move_right(self, tile):
         if tile % 3 != 2 or self.state[tile - 2] != 0:
             return False
         total = 64 + 10

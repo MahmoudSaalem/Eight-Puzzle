@@ -1,15 +1,11 @@
-import queue as Q
 import time
 import sys
 import math
-import heapq
 
 if sys.platform == "win32":
     import psutil
-    # print("psutil", psutil.Process().memory_info().rss)
 else:
     import resource
-    # print("resource", resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
 
 class Frontier(object):
@@ -159,10 +155,24 @@ class PuzzleState(object):
 
 nodes_expanded = 0
 max_depth = 0
+running_time = 0
 
 
-def write_output(state):
-    pass
+def write_output(state: PuzzleState):
+    ram_usage = psutil.Process().memory_info().rss if sys.platform == "win32" else \
+        resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    output = ""
+    output += "Cost of path: " + str(state.cost) + "\n"
+    output += "Nodes expanded: " + str(nodes_expanded) + "\n"
+    output += "Search depth: " + str(state.cost) + "\n"
+    output += "Max search depth: " + str(max_depth) + "\n"
+    output += "Running time: " + str(running_time) + "\n"
+    output += "Max RAM usage: " + str(ram_usage) + "\n"
+    output += "Path to goal: " + str(path_to_goal(state))
+    f = open("output.txt", "w")
+    f.write(output)
+    f.close()
+    print(output)
 
 
 def path_to_goal(state: PuzzleState):
@@ -300,28 +310,26 @@ def get_arg(param_index, default=None):
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
     method = get_arg(1, "ast_man").lower()
-    # begin_state = get_arg(2, "6,1,8,4,0,2,7,3,5").split(",")
     begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
-    # begin_state = get_arg(2, "1,2,5,3,4,0,6,7,8").split(",")
+
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)
-    hard_state.display()
+
     if method == "bfs":
         solved_state = bfs_search(hard_state)
+        write_output(solved_state)
     elif method == "dfs":
         solved_state = dfs_search(hard_state)
+        write_output(solved_state)
     elif method == "ast_man":
         solved_state = a_star_search(hard_state, calculate_manhattan_dist)
+        write_output(solved_state)
     elif method == "ast_euc":
         solved_state = a_star_search(hard_state, calculate_euclidean_dist)
+        write_output(solved_state)
     else:
         print("Enter valid command arguments !")
-    print("cost", solved_state.cost)
-    print("nodes expanded", nodes_expanded)
-    print("max depth", max_depth)
-    solved_state.display()
-    # print(path_to_goal(solved_state))
 
 
 if __name__ == '__main__':
