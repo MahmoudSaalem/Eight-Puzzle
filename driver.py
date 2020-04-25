@@ -288,6 +288,23 @@ def test_goal(puzzle_state: PuzzleState):
     return puzzle_state.config == goal_state
 
 
+def solve(state, method):
+    if method == "bfs":
+        solved_state = bfs_search(state)
+        write_output(solved_state)
+    elif method == "dfs":
+        solved_state = dfs_search(state)
+        write_output(solved_state)
+    elif method == "ast_man":
+        solved_state = a_star_search(state, calculate_manhattan_dist)
+        write_output(solved_state)
+    elif method == "ast_euc":
+        solved_state = a_star_search(state, calculate_euclidean_dist)
+        write_output(solved_state)
+    else:
+        print("Enter valid command arguments !")
+
+
 def get_arg(param_index, default=None):
     """
     Gets a command line argument by index (note: index starts from 1)
@@ -316,20 +333,7 @@ def main():
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)
 
-    if method == "bfs":
-        solved_state = bfs_search(hard_state)
-        write_output(solved_state)
-    elif method == "dfs":
-        solved_state = dfs_search(hard_state)
-        write_output(solved_state)
-    elif method == "ast_man":
-        solved_state = a_star_search(hard_state, calculate_manhattan_dist)
-        write_output(solved_state)
-    elif method == "ast_euc":
-        solved_state = a_star_search(hard_state, calculate_euclidean_dist)
-        write_output(solved_state)
-    else:
-        print("Enter valid command arguments !")
+    solve(hard_state, method)
 
 
 if __name__ == '__main__':

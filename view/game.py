@@ -1,5 +1,6 @@
 import tkinter
 from PIL import Image, ImageTk
+from driver import
 
 
 class Window(tkinter.Tk):
@@ -28,6 +29,7 @@ class Board(tkinter.Canvas):
         self.bind("<Button-1>", self.move_tile)
         self.bind("<Motion>", self.hover)
         self.bind("<Leave>", self.refresh)
+        self.bind("<Double-Button-1>", self.solve)
 
     def move_tile(self, event):
         tile = self.get_tile(event.x, event.y)
@@ -237,6 +239,9 @@ class Board(tkinter.Canvas):
     def test_goal(self):
         goal_state = [0, 1, 2, 3, 4, 5, 6, 7, 8]
         return self.state == goal_state
+
+    def solve(self):
+
 
 
 def main():
