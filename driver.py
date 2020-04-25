@@ -21,11 +21,12 @@ class Frontier(object):
         self._frontier_set = set()
 
     def push(self, val):
-        self._frontier.append(val)
         if self.method.lower() == "heap":
+            self._frontier.insert(0, val)
             self._frontier.sort(reverse=True, key=lambda tup: tup[0])
             self._frontier_set.add(val[1].config)
         else:
+            self._frontier.append(val)
             self._frontier_set.add(val.config)
 
     def pop(self):
@@ -156,12 +157,28 @@ class PuzzleState(object):
         return self.children
 
 
-def write_output():
+nodes_expanded = 0
+max_depth = 0
+
+
+def write_output(state):
     pass
+
+
+def path_to_goal(state: PuzzleState):
+    path = []
+    curr_state = state
+    while curr_state.action != "Initial":
+        path.append(curr_state.action)
+        curr_state = curr_state.parent
+    path.reverse()
+    return path
 
 
 def bfs_search(initial_state):
     """BFS search"""
+    global nodes_expanded
+    global max_depth
     frontier = Frontier("Queue")
     explored = set()
     frontier.push(initial_state)
@@ -170,17 +187,20 @@ def bfs_search(initial_state):
         explored.add(state.config)
 
         if test_goal(state):
-            print(state.cost)
-            return state.display()
+            nodes_expanded = len(explored) - 1
+            return state
 
         for neighbor in state.expand():
             if neighbor.config not in explored and not frontier.exists(neighbor):
+                max_depth = max(max_depth, neighbor.cost)
                 frontier.push(neighbor)
     return False
 
 
 def dfs_search(initial_state):
     """DFS search"""
+    global nodes_expanded
+    global max_depth
     frontier = Frontier("Stack")
     explored = set()
     frontier.push(initial_state)
@@ -189,17 +209,20 @@ def dfs_search(initial_state):
         explored.add(state.config)
 
         if test_goal(state):
-            print(state.cost)
-            return state.display()
+            nodes_expanded = len(explored) - 1
+            return state
 
         for neighbor in state.reverse_expand():
             if neighbor.config not in explored and not frontier.exists(neighbor):
+                max_depth = max(max_depth, neighbor.cost)
                 frontier.push(neighbor)
     return False
 
 
 def a_star_search(initial_state, cost_function):
     """A * search"""
+    global nodes_expanded
+    global max_depth
     frontier = Frontier("heap")
     explored = set()
     frontier.push((calculate_total_cost(initial_state, cost_function), initial_state))
@@ -208,33 +231,17 @@ def a_star_search(initial_state, cost_function):
         explored.add(state.config)
 
         if test_goal(state):
-            print(state.cost)
-            return state.display()
+            nodes_expanded = len(explored) - 1
+            return state
 
         for neighbour in state.expand():
-            cost = calculate_total_cost(neighbour, calculate_manhattan_dist)
+            cost = calculate_total_cost(neighbour, cost_function)
             if neighbour.config not in explored and not frontier.exists(neighbour):
+                max_depth = max(max_depth, neighbour.cost)
                 frontier.push((cost, neighbour))
             elif frontier.exists(neighbour):
                 frontier.update_key(neighbour, cost)
     return False
-
-
-def in_priority_queue(frontier, val):
-    for elem in frontier:
-        if elem[1].config == val.config:
-            return True
-    return False
-
-
-def update_queue_key(frontier, val, cost):
-    for i, elem in enumerate(frontier):
-        if elem[1].config == val.config:
-            if cost < elem[0]:
-                frontier.pop(i)
-                frontier.append((cost, val))
-                frontier.sort(reverse=True, key=lambda tup: tup[0])
-            break
 
 
 def calculate_total_cost(state, cost_function):
@@ -292,22 +299,29 @@ def get_arg(param_index, default=None):
 
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
-    method = get_arg(1, "bfs").lower()
-    begin_state = get_arg(2, "6,1,8,4,0,2,7,3,5").split(",")
+    method = get_arg(1, "ast_man").lower()
+    # begin_state = get_arg(2, "6,1,8,4,0,2,7,3,5").split(",")
+    begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
+    # begin_state = get_arg(2, "1,2,5,3,4,0,6,7,8").split(",")
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)
     hard_state.display()
     if method == "bfs":
-        bfs_search(hard_state)
+        solved_state = bfs_search(hard_state)
     elif method == "dfs":
-        dfs_search(hard_state)
+        solved_state = dfs_search(hard_state)
     elif method == "ast_man":
-        a_star_search(hard_state, calculate_manhattan_dist)
+        solved_state = a_star_search(hard_state, calculate_manhattan_dist)
     elif method == "ast_euc":
-        a_star_search(hard_state, calculate_euclidean_dist)
+        solved_state = a_star_search(hard_state, calculate_euclidean_dist)
     else:
         print("Enter valid command arguments !")
+    print("cost", solved_state.cost)
+    print("nodes expanded", nodes_expanded)
+    print("max depth", max_depth)
+    solved_state.display()
+    # print(path_to_goal(solved_state))
 
 
 if __name__ == '__main__':
