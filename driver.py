@@ -233,6 +233,7 @@ def bfs_search(initial_state):
             if neighbor.config not in explored and not frontier.exists(neighbor):
                 max_depth = max(max_depth, neighbor.cost)
                 frontier.push(neighbor)
+    nodes_expanded += 1
     return False
 
 
