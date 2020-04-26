@@ -161,6 +161,7 @@ running_time = 0
 def write_output(state: PuzzleState):
     ram_usage = psutil.Process().memory_info().rss if sys.platform == "win32" else \
         resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    path = path_to_goal(state)
     output = ""
     output += "Cost of path: " + str(state.cost) + "\n"
     output += "Nodes expanded: " + str(nodes_expanded) + "\n"
@@ -168,11 +169,12 @@ def write_output(state: PuzzleState):
     output += "Max search depth: " + str(max_depth) + "\n"
     output += "Running time: " + str(running_time) + "\n"
     output += "Max RAM usage: " + str(ram_usage) + "\n"
-    output += "Path to goal: " + str(path_to_goal(state))
+    output += "Path to goal: " + str(path)
     f = open("output.txt", "w")
     f.write(output)
     f.close()
     print(output)
+    return path
 
 
 def path_to_goal(state: PuzzleState):
@@ -291,16 +293,16 @@ def test_goal(puzzle_state: PuzzleState):
 def solve(state, method):
     if method == "bfs":
         solved_state = bfs_search(state)
-        write_output(solved_state)
+        return write_output(solved_state)
     elif method == "dfs":
         solved_state = dfs_search(state)
-        write_output(solved_state)
+        return write_output(solved_state)
     elif method == "ast_man":
         solved_state = a_star_search(state, calculate_manhattan_dist)
-        write_output(solved_state)
+        return write_output(solved_state)
     elif method == "ast_euc":
         solved_state = a_star_search(state, calculate_euclidean_dist)
-        write_output(solved_state)
+        return write_output(solved_state)
     else:
         print("Enter valid command arguments !")
 

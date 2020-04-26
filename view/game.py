@@ -1,6 +1,6 @@
 import tkinter
 from PIL import Image, ImageTk
-from driver import
+from driver import solve, PuzzleState
 
 
 class Window(tkinter.Tk):
@@ -240,12 +240,38 @@ class Board(tkinter.Canvas):
         goal_state = [0, 1, 2, 3, 4, 5, 6, 7, 8]
         return self.state == goal_state
 
-    def solve(self):
-
+    def solve(self, event):
+        if self.state[self.get_tile(event.x, event.y)] == 0 and not self.test_goal():
+            hard_state = PuzzleState(tuple(self.state), 3)
+            path = solve(hard_state, "ast_man")
+            blank_tile = 0
+            for i, item in enumerate(self.state):
+                if item == 0:
+                    blank_tile = i
+                    break
+            self.drawing = True
+            for command in path:
+                if command == "Up":
+                    blank_tile -= 3
+                    self.try_move_up(blank_tile)
+                elif command == "Down":
+                    blank_tile += 3
+                    self.try_move_down(blank_tile)
+                elif command == "Left":
+                    blank_tile -= 1
+                    self.try_move_left(blank_tile)
+                elif command == "Right":
+                    blank_tile += 1
+                    self.try_move_right(blank_tile)
+            self.drawing = False
+        if self.test_goal():
+            self.config(bg="green")
+        else:
+            self.config(bg="red")
 
 
 def main():
-    config = [1, 0, 2, 3, 4, 5, 6, 7, 8]
+    config = [8, 6, 4, 2, 1, 3, 5, 7, 0]
     root = Window()
     game = Board(root, config)
     game.mainloop()
