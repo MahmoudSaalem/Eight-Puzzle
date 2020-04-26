@@ -3,15 +3,10 @@ import sys
 import math
 import timeit
 
-
 if sys.platform == "win32":
     import psutil
-    mem=psutil.Process().memory_info().rss
-    print("Memory used: ", mem/1024000)
 else:
     import resource
-    mem=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print("Memory used: ", mem/1024000)
 
 
 class Frontier(object):
@@ -159,22 +154,26 @@ class PuzzleState(object):
         return self.children
 
 
+# GLOBAL VARIABLES
 nodes_expanded = 0
 max_depth = 0
 running_time = 0
 
 
-def write_output(state: PuzzleState,runTime):
+def write_output(state: PuzzleState):
+    global running_time
     ram_usage = psutil.Process().memory_info().rss if sys.platform == "win32" else \
         resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    ram_usage = round(ram_usage / 1048576, 8)
+    running_time = round(running_time, 8)
     path = path_to_goal(state)
     output = ""
     output += "Cost of path: " + str(state.cost) + "\n"
     output += "Nodes expanded: " + str(nodes_expanded) + "\n"
     output += "Search depth: " + str(state.cost) + "\n"
     output += "Max search depth: " + str(max_depth) + "\n"
-    output += "Running time: " + str(runTime) + "\n"
-    output += "Max RAM usage: " + str(ram_usage) + "\n"
+    output += "Running time: " + str(running_time) + " sec\n"
+    output += "Max RAM usage: " + str(ram_usage) + " MB\n"
     output += "Path to goal: " + str(path)
     f = open("output.txt", "w")
     f.write(output)
@@ -297,26 +296,27 @@ def test_goal(puzzle_state: PuzzleState):
 
 
 def solve(state, method):
+    global running_time
     if method == "bfs":
         start = timeit.default_timer()
         solved_state = bfs_search(state)
-        total_time = timeit.default_timer() - start
-        return write_output(solved_state,total_time)
+        running_time = timeit.default_timer() - start
+        return write_output(solved_state)
     elif method == "dfs":
         start = timeit.default_timer()
         solved_state = dfs_search(state)
-        total_time = timeit.default_timer() - start
-        return write_output(solved_state,total_time)
+        running_time = timeit.default_timer() - start
+        return write_output(solved_state)
     elif method == "ast_man":
         start = timeit.default_timer()
         solved_state = a_star_search(state, calculate_manhattan_dist)
-        total_time = timeit.default_timer() - start
-        return write_output(solved_state,total_time)
+        running_time = timeit.default_timer() - start
+        return write_output(solved_state)
     elif method == "ast_euc":
         start = timeit.default_timer()
         solved_state = a_star_search(state, calculate_euclidean_dist)
-        total_time = timeit.default_timer() - start
-        return write_output(solved_state,total_time)
+        running_time = timeit.default_timer() - start
+        return write_output(solved_state)
     else:
         print("Enter valid command arguments !")
 
