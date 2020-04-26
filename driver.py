@@ -1,4 +1,5 @@
 import sys
+import heapq
 import math
 import timeit
 
@@ -18,8 +19,7 @@ class Frontier(object):
 
     def push(self, val):
         if self.method.lower() == "heap":
-            self._frontier.insert(0, val)
-            self._frontier.sort(reverse=True, key=lambda tup: tup[0])
+            heapq.heappush(self._frontier, val)
             self._frontier_set.add(val[1].config)
         else:
             self._frontier.append(val)
@@ -31,7 +31,7 @@ class Frontier(object):
         elif self.method.lower() == "queue":
             ret = self._frontier.pop(0)
         else:
-            ret = self._frontier.pop()[1]
+            ret = heapq.heappop(self._frontier)[1]
         self._frontier_set.remove(ret.config)
         return ret
 
@@ -40,19 +40,21 @@ class Frontier(object):
             for i, elem in enumerate(self._frontier):
                 if elem[1].config == val.config:
                     if cost < elem[0]:
-                        self._frontier.pop(i)
-                        self._frontier.append((cost, val))
-                        self._frontier.sort(reverse=True, key=lambda tup: tup[0])
+                        self._frontier[i] = (cost, val)
+                        # heapq.heapify(self._frontier)
+                        heapq._siftdown(self._frontier, 0, i)
                     break
 
     def exists(self, val):
         return val.config in self._frontier_set
 
+    def size(self):
+        return len(self._frontier)
+
 
 # The Class that Represents the Puzzle
 class PuzzleState(object):
     def __init__(self, config, n, parent=None, action="Initial", cost=0):
-
         if n * n != 9 or len(config) != 9:
             raise Exception("the length of config is not correct!")
         self.n = n
@@ -67,6 +69,9 @@ class PuzzleState(object):
                 self.blank_row = i // self.n
                 self.blank_col = i % self.n
                 break
+
+    def __lt__(self, other):
+        return True
 
     def display(self):
         for i in range(self.n):
@@ -154,31 +159,45 @@ class PuzzleState(object):
 
 
 # GLOBAL VARIABLES
-nodes_expanded = 0
+nodes_expanded = -1
 max_depth = 0
 running_time = 0
 
 
-def write_output(state: PuzzleState):
+def write_output(state):
     global running_time
     ram_usage = psutil.Process().memory_info().rss if sys.platform == "win32" else \
         resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     ram_usage = round(ram_usage / 1048576, 8)
     running_time = round(running_time, 8)
-    path = path_to_goal(state)
     output = ""
-    output += "Cost of path: " + str(state.cost) + "\n"
-    output += "Nodes expanded: " + str(nodes_expanded) + "\n"
-    output += "Search depth: " + str(state.cost) + "\n"
-    output += "Max search depth: " + str(max_depth) + "\n"
-    output += "Running time: " + str(running_time) + " sec\n"
-    output += "Max RAM usage: " + str(ram_usage) + " MB\n"
-    output += "Path to goal: " + str(path)
-    f = open("output.txt", "w")
-    f.write(output)
+    if not state:
+        output += "Nodes expanded: " + str(nodes_expanded) + "\n"
+        output += "Max search depth: " + str(max_depth) + "\n"
+        output += "Running time: " + str(running_time) + " sec\n"
+        output += "Max RAM usage: " + str(ram_usage) + " MB\n"
+        output += "Path to goal: No path was found\n"
+        write_to_file("output.txt", output)
+        print(output)
+        return False
+    else:
+        path = path_to_goal(state)
+        output += "Cost of path: " + str(state.cost) + "\n"
+        output += "Nodes expanded: " + str(nodes_expanded) + "\n"
+        output += "Search depth: " + str(state.cost) + "\n"
+        output += "Max search depth: " + str(max_depth) + "\n"
+        output += "Running time: " + str(running_time) + " msec\n"
+        output += "Max RAM usage: " + str(ram_usage) + " MB\n"
+        output += "Path to goal: " + str(path)
+        write_to_file("output.txt", output)
+        print(output)
+        return path
+
+
+def write_to_file(file, string):
+    f = open(file, "w")
+    f.write(string)
     f.close()
-    print(output)
-    return path
 
 
 def path_to_goal(state: PuzzleState):
@@ -199,11 +218,15 @@ def bfs_search(initial_state):
     explored = set()
     frontier.push(initial_state)
     while frontier:
+        if frontier.size() == 0:
+            nodes_expanded += 1
+            return False
+
         state: PuzzleState = frontier.pop()
         explored.add(state.config)
+        nodes_expanded += 1
 
         if test_goal(state):
-            nodes_expanded = len(explored) - 1
             return state
 
         for neighbor in state.expand():
@@ -221,17 +244,22 @@ def dfs_search(initial_state):
     explored = set()
     frontier.push(initial_state)
     while frontier:
+        if frontier.size() == 0:
+            nodes_expanded += 1
+            return False
+
         state: PuzzleState = frontier.pop()
         explored.add(state.config)
+        nodes_expanded += 1
 
         if test_goal(state):
-            nodes_expanded = len(explored) - 1
             return state
 
         for neighbor in state.reverse_expand():
             if neighbor.config not in explored and not frontier.exists(neighbor):
                 max_depth = max(max_depth, neighbor.cost)
                 frontier.push(neighbor)
+    nodes_expanded += 1
     return False
 
 
@@ -243,11 +271,15 @@ def a_star_search(initial_state, cost_function):
     explored = set()
     frontier.push((calculate_total_cost(initial_state, cost_function), initial_state))
     while frontier:
+        if frontier.size() == 0:
+            nodes_expanded += 1
+            return False
+
         state: PuzzleState = frontier.pop()
         explored.add(state.config)
+        nodes_expanded += 1
 
         if test_goal(state):
-            nodes_expanded = len(explored) - 1
             return state
 
         for neighbour in state.expand():
@@ -257,6 +289,7 @@ def a_star_search(initial_state, cost_function):
                 frontier.push((cost, neighbour))
             elif frontier.exists(neighbour):
                 frontier.update_key(neighbour, cost)
+    nodes_expanded += 1
     return False
 
 
@@ -306,7 +339,7 @@ def solve(state, method):
         solved_state = dfs_search(state)
         running_time = timeit.default_timer() - start
         return write_output(solved_state)
-    elif method == "ast_man":
+    elif method == "ast":
         start = timeit.default_timer()
         solved_state = a_star_search(state, calculate_manhattan_dist)
         running_time = timeit.default_timer() - start
@@ -341,8 +374,9 @@ def get_arg(param_index, default=None):
 
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
-    method = get_arg(1, "ast_man").lower()
-    begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
+    method = get_arg(1, "dfs").lower()
+    begin_state = get_arg(2, "8,1,2,0,4,3,7,6,5").split(",")
+    # begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)
