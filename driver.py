@@ -329,7 +329,12 @@ def test_goal(puzzle_state: PuzzleState):
 
 
 def solve(state, method):
+    global nodes_expanded
+    global max_depth
     global running_time
+    nodes_expanded = -1
+    max_depth = 0
+    running_time = 0
     if method == "bfs":
         start = timeit.default_timer()
         solved_state = bfs_search(state)
@@ -375,7 +380,7 @@ def get_arg(param_index, default=None):
 
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
-    method = get_arg(1, "dfs").lower()
+    method = get_arg(1, "ast").lower()
     begin_state = get_arg(2, "8,1,2,0,4,3,7,6,5").split(",")
     # begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
     begin_state = tuple(map(int, begin_state))
