@@ -381,9 +381,9 @@ def get_arg(param_index, default=None):
 
 # Main Function that reads in Input and Runs corresponding Algorithm
 def main():
-    method = get_arg(1, "ast").lower()
-    begin_state = get_arg(2, "8,1,2,0,4,3,7,6,5").split(",")
-    # begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
+    method = get_arg(1, "ast_euc").lower()
+    # begin_state = get_arg(2, "8,1,2,0,4,3,7,6,5").split(",")  # unsolvable configuration
+    begin_state = get_arg(2, "8,6,4,2,1,3,5,7,0").split(",")
     begin_state = tuple(map(int, begin_state))
     size = int(math.sqrt(len(begin_state)))
     hard_state = PuzzleState(begin_state, size)

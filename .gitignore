@@ -1,4 +1,6 @@
 .idea/
 venv/
+view/__pycache__/
 __pycache__/
+view/output.txt
 output.txt
