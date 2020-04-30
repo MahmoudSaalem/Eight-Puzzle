@@ -352,19 +352,22 @@ class Board(tkinter.Canvas):
                 blank_tile = i
                 break
         self.drawing = True
-        for command in path:
-            if command == "Up":
-                blank_tile -= 3
-                self.try_move_up(blank_tile)
-            elif command == "Down":
-                blank_tile += 3
-                self.try_move_down(blank_tile)
-            elif command == "Left":
-                blank_tile -= 1
-                self.try_move_left(blank_tile)
-            elif command == "Right":
-                blank_tile += 1
-                self.try_move_right(blank_tile)
+        try:
+            for command in path:
+                if command == "Up":
+                    blank_tile -= 3
+                    self.try_move_up(blank_tile)
+                elif command == "Down":
+                    blank_tile += 3
+                    self.try_move_down(blank_tile)
+                elif command == "Left":
+                    blank_tile -= 1
+                    self.try_move_left(blank_tile)
+                elif command == "Right":
+                    blank_tile += 1
+                    self.try_move_right(blank_tile)
+        except tkinter.TclError:
+            pass
         self.drawing = False
         if self.test_goal():
             pass
@@ -412,7 +415,14 @@ def settings_window(board):
 
     # Dictionary with options
     choices = {'A* Manhattan', 'A* Euclidean', 'BFS', 'DFS'}
-    tkvar.set('A* Manhattan')  # set the default option
+    if board.method == "bfs":
+        tkvar.set('BFS')  # set the default option
+    elif board.method == "dfs":
+        tkvar.set('DFS')  # set the default option
+    elif board.method == "ast":
+        tkvar.set('A* Manhattan')  # set the default option
+    elif board.method == "ast_euc":
+        tkvar.set('A* Euclidean')  # set the default option
 
     popup_menu = tkinter.OptionMenu(config_window, tkvar, *choices)
     tkinter.Label(config_window, text="Algorithm").grid(row=2, column=1)
