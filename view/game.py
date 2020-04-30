@@ -7,10 +7,10 @@ class Window(tkinter.Tk):
     def __init__(self):
         super().__init__()
         self.title("Eight Puzzle")
-        window_width = 480
-        window_height = 800
+        window_width = 513
+        window_height = 770
         position_right = int(self.winfo_screenwidth() / 2 - window_width / 2)
-        position_down = int(self.winfo_screenheight() / 2 - window_height / 2)
+        position_down = int(self.winfo_screenheight() / 2 - window_height / 1.7)
         self.geometry(f"{window_width}x{window_height}+{position_right}+{position_down}")
 
 
@@ -32,7 +32,7 @@ class Logo(tkinter.Canvas):
         self.img = self.img.resize((450, 300), Image.ANTIALIAS)
         self.img_compatible = ImageTk.PhotoImage(image=self.img)
         self.create_image(5, -15, anchor="nw", image=self.img_compatible)
-        self.place(x=0, y=0, anchor="nw", )
+        self.place(x=0, y=0, anchor="nw")
 
 
 class Board(tkinter.Canvas):
@@ -43,7 +43,7 @@ class Board(tkinter.Canvas):
         self.master = master
         self.state = state
         self.pack(fill=tkinter.BOTH, expand=1)
-        self.place(x=15, y=200, anchor="nw")
+        self.place(x=30, y=200, anchor="nw")
         self.drawing = False
         self._img_compatible = [None] * 10
         self._board_compatible = None
@@ -56,10 +56,11 @@ class Board(tkinter.Canvas):
         self.load_images()
         self.draw_board()
         self.draw()
+        self.method = "ast"
         self.bind("<Button-1>", self.move_tile)
         self.bind("<Motion>", self.hover)
         self.bind("<Leave>", self.refresh)
-        self.bind("<Double-Button-1>", self.solve)
+        # self.bind("<Double-Button-1>", self.solve)
 
     def move_tile(self, event):
         tile = self.get_tile(event.x, event.y)
@@ -270,6 +271,7 @@ class Board(tkinter.Canvas):
         self.drawing = True
         for i, num in enumerate(self.state):
             if num == 0:
+                self.delete(self._tiles[i])
                 continue
             self._img_compatible[i] = ImageTk.PhotoImage(image=self.images[num])
             x = self.board_margin + self.tile_width * (i % 3)
@@ -331,52 +333,122 @@ class Board(tkinter.Canvas):
         goal_state = [0, 1, 2, 3, 4, 5, 6, 7, 8]
         return self.state == goal_state
 
-    def solve(self, event):
+    def solve(self, event=None):
         if self.drawing:
             return
         if self.test_goal():
             self.shake_all()
             return
-        if self.state[self.get_tile(event.x, event.y)] == 0:
-            hard_state = PuzzleState(tuple(self.state), 3)
-            path = solve(hard_state, "bfs")
-            if not path:
-                # The board is not solvable
-                self.shake_all()
-                return
-            blank_tile = 0
-            for i, item in enumerate(self.state):
-                if item == 0:
-                    blank_tile = i
-                    break
-            self.drawing = True
-            for command in path:
-                if command == "Up":
-                    blank_tile -= 3
-                    self.try_move_up(blank_tile)
-                elif command == "Down":
-                    blank_tile += 3
-                    self.try_move_down(blank_tile)
-                elif command == "Left":
-                    blank_tile -= 1
-                    self.try_move_left(blank_tile)
-                elif command == "Right":
-                    blank_tile += 1
-                    self.try_move_right(blank_tile)
-            self.drawing = False
+        # if self.state[self.get_tile(event.x, event.y)] == 0:
+        hard_state = PuzzleState(tuple(self.state), 3)
+        path = solve(hard_state, self.method)
+        if not path:
+            # The board is not solvable
+            self.shake_all()
+            return
+        blank_tile = 0
+        for i, item in enumerate(self.state):
+            if item == 0:
+                blank_tile = i
+                break
+        self.drawing = True
+        for command in path:
+            if command == "Up":
+                blank_tile -= 3
+                self.try_move_up(blank_tile)
+            elif command == "Down":
+                blank_tile += 3
+                self.try_move_down(blank_tile)
+            elif command == "Left":
+                blank_tile -= 1
+                self.try_move_left(blank_tile)
+            elif command == "Right":
+                blank_tile += 1
+                self.try_move_right(blank_tile)
+        self.drawing = False
         if self.test_goal():
             pass
         else:
             pass
 
 
+def settings_window(board):
+    config_window = tkinter.Tk()
+    config_window.title("Settings")
+    window_width = 320
+    window_height = 75
+    position_right = int(config_window.winfo_screenwidth() / 2 - window_width / 2)
+    position_down = int(config_window.winfo_screenheight() / 2 - window_height / 1.7)
+    config_window.geometry(f"{window_width}x{window_height}+{position_right}+{position_down}")
+    config_window.grab_set()
+
+    """
+    BOARD CONFIGURATION
+    """
+
+    tkinter.Label(config_window, text="Board Configuration").grid(row=1, column=1)
+    t = tkinter.Text(config_window, width=25, height=1, wrap="none")
+    t.grid(row=1, column=2)
+    t.insert(tkinter.END, str(board.state).replace(' ', '').replace('[', '').replace(']', ''))
+
+    def enter():
+        board.state = list(map(int, t.get(0.0, tkinter.END).split(',')))
+        board.refresh()
+        t.delete(0.0, tkinter.END)
+        t.insert(tkinter.END, str(board.state).replace(' ', '').replace('[', '').replace(']', ''))
+        config_window.grab_release()
+        config_window.destroy()
+
+    b = tkinter.Button(config_window, text="OK", command=enter, border=0, relief=tkinter.FLAT)
+    b.config(height=1, padx=20)
+    b.grid(row=3, column=2)
+
+    """
+    DROP DOWN MENU
+    """
+
+    # Create a Tkinter variable
+    tkvar = tkinter.StringVar(config_window)
+
+    # Dictionary with options
+    choices = {'A* Manhattan', 'A* Euclidean', 'BFS', 'DFS'}
+    tkvar.set('A* Manhattan')  # set the default option
+
+    popup_menu = tkinter.OptionMenu(config_window, tkvar, *choices)
+    tkinter.Label(config_window, text="Algorithm").grid(row=2, column=1)
+    popup_menu.grid(row=2, column=2)
+
+    # on change dropdown value
+    def change_dropdown(*args):
+        if tkvar.get() == "A* Manhattan":
+            board.method = "ast"
+        elif tkvar.get() == "A* Euclidean":
+            board.method = "ast_euc"
+        elif tkvar.get() == "BFS":
+            board.method = "bfs"
+        elif tkvar.get() == "DFS":
+            board.method = "dfs"
+
+    # link function to change dropdown
+    tkvar.trace('w', change_dropdown)
+
+
 def main():
-    config = [8, 1, 2, 0, 4, 3, 7, 6, 5]
-    # config = [8, 6, 4, 2, 1, 3, 5, 7, 0]
+    # config = [8, 1, 2, 0, 4, 3, 7, 6, 5]
+    config = [8, 6, 4, 2, 1, 3, 5, 7, 0]
     root = Window()
     Backgroud(root)
     Logo(root)
-    Board(root, config)
+    board = Board(root, config)
+
+    b = tkinter.Button(root, text="Settings", command=lambda: settings_window(board), border=0, relief=tkinter.FLAT)
+    b.config(height=3, padx=75)
+    b.place(x=30, y=685, anchor="nw")
+
+    b = tkinter.Button(root, text="Solve", command=board.solve, border=0, relief=tkinter.FLAT)
+    b.config(height=3, padx=75)
+    b.place(x=293, y=685, anchor="nw")
+
     root.mainloop()
 
 
