@@ -164,13 +164,14 @@ max_depth = 0
 running_time = 0
 
 
-def write_output(state):
+def write_output(state, method):
     global running_time
     ram_usage = psutil.Process().memory_info().rss if sys.platform == "win32" else \
         resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     ram_usage = round(ram_usage / 1048576, 8)
     running_time = round(running_time, 8)
     output = ""
+    output += "Algorithm: " + method + '\n'
     if not state:
         output += "Nodes expanded: " + str(nodes_expanded) + "\n"
         output += "Max search depth: " + str(max_depth) + "\n"
@@ -339,22 +340,22 @@ def solve(state, method):
         start = timeit.default_timer()
         solved_state = bfs_search(state)
         running_time = timeit.default_timer() - start
-        return write_output(solved_state)
+        return write_output(solved_state, "BFS")
     elif method == "dfs":
         start = timeit.default_timer()
         solved_state = dfs_search(state)
         running_time = timeit.default_timer() - start
-        return write_output(solved_state)
+        return write_output(solved_state, "DFS")
     elif method == "ast":
         start = timeit.default_timer()
         solved_state = a_star_search(state, calculate_manhattan_dist)
         running_time = timeit.default_timer() - start
-        return write_output(solved_state)
+        return write_output(solved_state, "A* Manhattan")
     elif method == "ast_euc":
         start = timeit.default_timer()
         solved_state = a_star_search(state, calculate_euclidean_dist)
         running_time = timeit.default_timer() - start
-        return write_output(solved_state)
+        return write_output(solved_state, "A* Euclidean")
     else:
         print("Enter valid command arguments !")
 
